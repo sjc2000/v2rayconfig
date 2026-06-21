@@ -1,0 +1,173 @@
+{
+  "log": {
+      "access": "/root/access.log",
+      "error": "/root/error.log",
+      "loglevel": "warning"
+  },
+  "inbounds": [
+    {
+      "port": 13908,
+      "listen": "0.0.0.0",
+      "protocol": "vmess",
+      "streamSettings": {
+          "network": "kcp",
+          "kcpSettings": {
+              "mtu": 1350,
+              "tti": 50,
+              "uplinkCapacity": 100,
+              "downlinkCapacity": 100,
+              "congestion": false,
+              "readBufferSize": 2,
+              "writeBufferSize": 2,
+              "seed": "PASSWORD",
+              "header": {
+                  "type": "dtls"
+              }
+          }
+      },
+      "settings": {
+          "clients": [
+              {
+                  "id": "UUID",
+                  "level": 0,
+                  "alterId": 0
+              }
+          ],
+          "default": {
+              "level": 0,
+              "alterId":0
+          },
+          "detour": {
+                "to": "dynamicPort"
+          }
+      }
+    },
+    {
+      "port": 8388,
+      "listen": "127.0.0.1",
+      "protocol": "vmess",
+      "streamSettings": {
+          "network": "ws",
+          "wsSettings": {
+              "path": "/ray"
+          }
+      },
+      "settings": {
+          "clients": [
+              {
+                  "id": "UUID",
+                  "level": 0,
+                  "alterId": 0
+              }
+          ],
+          "default": {
+              "level": 0,
+              "alterId":0
+          }
+      }
+    },
+    {
+      "port": 13666,
+      "listen": "0.0.0.0",
+      "protocol": "vmess",
+      "streamSettings": {
+          "network": "ws",
+          "wsSettings": {
+              "path": "/dynaport"
+          }
+      },
+      "settings": {
+          "clients": [
+              {
+                  "id": "UUID",
+                  "level": 0,
+                  "alterId": 0
+              }
+          ],
+          "default": {
+              "level": 0,
+              "alterId": 0
+          },
+          "detour": {
+              "to": "wsdynamic"
+          }
+      }
+    },
+    {
+      "protocol": "vmess",
+      "port": "30000-50000",
+      "tag": "dynamicPort",
+      "streamSettings": {
+          "network": "kcp",
+          "kcpSettings": {
+          "tti": 10,
+              "uplinkCapacity": 100,
+              "downlinkCapacity": 100,
+              "seed": "PASSWORD",
+              "header": {
+                  "type": "dtls"
+              }
+          }
+      },
+      "settings": {
+          "default": {
+              "alterId": 0,
+              "level": 0
+          }
+      },
+      "allocate": {
+          "strategy": "random",
+          "concurrency": 3,
+          "refresh": 10
+      }
+    },
+    {
+      "protocol": "vmess",
+      "port": "30000-50000",
+      "tag": "wsdynamic",
+      "streamSettings": {
+          "network": "ws",
+          "wsSettings": {
+             "path": "/dynaport"
+          }
+      },
+      "settings": {
+          "default": {
+              "alterId": 0,
+              "level": 0
+          }
+      },
+      "allocate": {
+          "strategy": "random",
+          "concurrency": 3,
+          "refresh": 10
+      }
+    }
+  ],
+
+  "outbounds": [
+    {
+      "protocol": "freedom",
+      "settings": {
+        "domainStrategy": "UseIPv4"
+      }
+    },
+    {
+      "protocol": "blackhole",
+      "settings": {},
+      "tag": "block"
+    }
+  ],
+  "routing": {
+    "domainStrategy": "AsIs",
+    "rules": [
+      {
+        "type": "field",
+        "outboundTag": "block",
+        "protocol": [
+          "bittorrent"
+        ]
+      }
+    ]
+  }
+}
